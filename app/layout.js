@@ -1,4 +1,3 @@
-"use client"
 import "./globals.css";
 import { Inter, Outfit } from "next/font/google";
 import CursorGlow from "./CursorGlow"
