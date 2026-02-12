@@ -1,96 +1,89 @@
 "use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
 export default function PreferencesPage() {
   const router = useRouter();
 
-  const [genderPref,setGenderPref] = useState("any");
-  const [intent,setIntent] = useState("friends");
+  const [gender, setGender] = useState("");
+  const [preference, setPreference] = useState("");
 
-  function startChat(){
-    localStorage.setItem("genderPref",genderPref);
-    localStorage.setItem("intent",intent);
+  const continueToMatch = () => {
+    if (!gender || !preference) {
+      alert("Please select both options");
+      return;
+    }
+
+    localStorage.setItem("gender", gender);
+    localStorage.setItem("preference", preference);
+
     router.push("/match");
-  }
+  };
+
+  const Card = ({ title, value, selected, onClick }) => (
+    <motion.div
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={() => onClick(value)}
+      className={`p-4 rounded-2xl cursor-pointer transition border ${
+        selected
+          ? "bg-white text-black border-white"
+          : "bg-white/10 border-white/20 hover:bg-white/20"
+      }`}
+    >
+      {title}
+    </motion.div>
+  );
 
   return (
-    <div style={styles.wrapper}>
-      <div style={styles.card}>
+    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center px-6">
+      <div className="max-w-md w-full space-y-10">
 
-        <h1 style={styles.title}>Who do you want to meet?</h1>
-        <p style={styles.subtitle}>Choose your vibe </p>
+        {/* Heading */}
+        <div className="text-center">
+          <h1 className="text-4xl font-bold mb-2">
+            Set your preferences
+          </h1>
+          <p className="opacity-60">
+            This helps us find better matches.
+          </p>
+        </div>
 
-        {/* Match Gender */}
-        <label style={styles.label}>Match with</label>
-        <select 
-          value={genderPref}
-          onChange={(e)=>setGenderPref(e.target.value)}
+        {/* YOUR GENDER */}
+        <div className="space-y-3">
+          <h2 className="opacity-70 text-sm">I am</h2>
+
+          <div className="grid grid-cols-3 gap-3">
+            <Card title="Male" value="male" selected={gender==="male"} onClick={setGender}/>
+            <Card title="Female" value="female" selected={gender==="female"} onClick={setGender}/>
+            <Card title="Other" value="other" selected={gender==="other"} onClick={setGender}/>
+          </div>
+        </div>
+
+        {/* MATCH PREFERENCE */}
+        <div className="space-y-3">
+          <h2 className="opacity-70 text-sm">I want to meet</h2>
+
+          <div className="grid grid-cols-3 gap-3">
+            <Card title="Male" value="male" selected={preference==="male"} onClick={setPreference}/>
+            <Card title="Female" value="female" selected={preference==="female"} onClick={setPreference}/>
+            <Card title="Anyone" value="any" selected={preference==="any"} onClick={setPreference}/>
+          </div>
+        </div>
+
+        {/* CONTINUE */}
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={continueToMatch}
+          className="w-full bg-white text-black py-4 rounded-2xl font-semibold"
         >
-          <option value="any">Anyone</option>
-          <option value="female">Female</option>
-          <option value="male">Male</option>
-        </select>
-
-        {/* Intent */}
-        <label style={styles.label}>Looking for</label>
-        <select 
-          value={intent}
-          onChange={(e)=>setIntent(e.target.value)}
-        >
-          <option value="friends">Friends</option>
-          <option value="dating">Dating</option>
-          <option value="casual">Casual fun</option>
-        </select>
-
-        <button className="primary-btn" onClick={startChat}>
-          Start Chat →
-        </button>
+          Start Matching →
+        </motion.button>
 
       </div>
     </div>
   );
 }
-
-const styles = {
-  wrapper:{
-    height:"100vh",
-    display:"flex",
-    justifyContent:"center",
-    alignItems:"center",
-    padding:"20px"
-  },
-
-  card:{
-    width:"100%",
-    maxWidth:380,
-    background:"rgba(255,255,255,0.75)",
-    backdropFilter:"blur(20px)",
-    padding:"40px 32px",
-    borderRadius:28,
-    boxShadow:"0 20px 60px rgba(0,0,0,.15)",
-    display:"flex",
-    flexDirection:"column"
-  },
-
-  title:{
-    fontSize:30,
-    fontWeight:700,
-    marginBottom:6,
-    textAlign:"center"
-  },
-
-  subtitle:{
-    opacity:.6,
-    marginBottom:26,
-    textAlign:"center",
-    fontSize:14
-  },
-
-  label:{
-    fontSize:14,
-    marginTop:10,
-    marginBottom:4,
-    opacity:.7
-  }
-};

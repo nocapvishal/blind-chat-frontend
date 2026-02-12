@@ -1,129 +1,54 @@
-"use client"
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { useRouter } from "next/navigation"
+"use client";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function VerifyPage() {
-  const [email,setEmail] = useState("")
-  const [error,setError] = useState("")
-  const router = useRouter()
+  const router = useRouter();
+  const [email, setEmail] = useState("");
 
-  const handleVerify = () => {
-    if(!email.endsWith("@pondiuni.ac.in")){
-      setError("Use your official university email 🎓")
-      return
+  function handleContinue() {
+    if (!email.endsWith("@pondiuni.ac.in")) {
+      alert("Please use your Pondicherry University email.");
+      return;
     }
 
-    localStorage.setItem("campusEmail", email)
-    router.push("/preferences")
+    localStorage.setItem("campusEmail", email);
+    router.push("/intent");
   }
 
   return (
-    <main style={styles.page}>
-      <motion.div
-        style={styles.card}
-        initial={{ opacity:0, y:40 }}
-        animate={{ opacity:1, y:0 }}
-        transition={{ duration:.6 }}
-      >
-        <h1 style={styles.title}>Verify your campus email</h1>
+    <div className="min-h-screen bg-black flex items-center justify-center px-6">
 
-        <p style={styles.subtitle}>
-          Only University students allowed 💌
+      <div className="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 space-y-6 text-center">
+
+        <h1 className="text-3xl font-semibold">
+          Verify student status
+        </h1>
+
+        <p className="text-gray-400 text-sm">
+          Use your Pondicherry University email
         </p>
 
         <input
-          placeholder="you@pondiuni.ac.in"
+          type="email"
+          placeholder="email@pondiuni.ac.in"
+          className="w-full px-4 py-3 rounded-xl bg-black border border-white/20 outline-none"
           value={email}
           onChange={(e)=>setEmail(e.target.value)}
-          style={styles.input}
         />
 
-        {error && <p style={styles.error}>{error}</p>}
-
-        <motion.button
-          style={styles.button}
-          whileHover={{ scale:1.05 }}
-          whileTap={{ scale:.95 }}
-          onClick={handleVerify}
+        <button
+          onClick={handleContinue}
+          className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 font-semibold"
         >
-          Verify & Continue →
-        </motion.button>
+          Continue →
+        </button>
 
-        <p style={styles.note}>
-          We never show your email to anyone. Ever.
+        <p className="text-xs text-gray-500">
+          Your email is never shared with other users.
         </p>
-      </motion.div>
-    </main>
-  )
-}
 
-const styles = {
-
-  page:{
-    minHeight:"100vh",
-    display:"flex",
-    alignItems:"center",
-    justifyContent:"center",
-    background:"linear-gradient(120deg,#ffd6ec,#d7e7ff,#d2ffe8)",
-    padding:"20px"
-  },
-
-  card:{
-    background:"rgba(255,255,255,0.65)",
-    backdropFilter:"blur(18px)",
-    padding:"45px 35px",
-    borderRadius:"30px",
-    textAlign:"center",
-    width:"100%",
-    maxWidth:420,
-    boxShadow:"0 25px 60px rgba(0,0,0,0.12)"
-  },
-
-  title:{
-    fontSize:34,
-    fontWeight:800,
-    marginBottom:10
-  },
-
-  subtitle:{
-    opacity:.7,
-    marginBottom:30
-  },
-
-  input:{
-    width:"100%",
-    padding:"15px",
-    borderRadius:12,
-    border:"none",
-    marginBottom:15,
-    fontSize:16,
-    outline:"none",
-    boxShadow:"0 5px 15px rgba(0,0,0,.08)"
-  },
-
-  button:{
-    width:"100%",
-    padding:"15px",
-    borderRadius:14,
-    border:"none",
-    fontSize:17,
-    fontWeight:700,
-    color:"white",
-    cursor:"pointer",
-    background:"linear-gradient(90deg,#7b8cff,#ff6fb7)",
-    boxShadow:"0 10px 25px rgba(0,0,0,.18)"
-  },
-
-  error:{
-    color:"#ff4d6d",
-    fontSize:14,
-    marginBottom:10
-  },
-
-  note:{
-    marginTop:18,
-    fontSize:13,
-    opacity:.6
-  }
+      </div>
+    </div>
+  );
 }

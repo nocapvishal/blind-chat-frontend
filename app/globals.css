@@ -1,75 +1,22 @@
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+@import "tailwindcss";
+
+/* ---- Base theme ---- */
+:root {
+  color-scheme: dark;
 }
 
 html, body {
   height: 100%;
-  font-family: var(--font-body);
-  color: #111;
 }
 
-/* Headings use Outfit */
-h1,h2,h3,h4 {
-  font-family: var(--font-heading);
-  letter-spacing: -0.03em;
-}
-
-/* smooth gradient background */
 body {
-  background: linear-gradient(
-    120deg,
-    #f8cdda,
-    #c2e9fb,
-    #e0c3fc,
-    #fbc2eb
-  );
-  background-size: 400% 400%;
-  animation: gradientMove 18s ease infinite;
-}
-
-@keyframes gradientMove {
-  0% { background-position: 0% 50% }
-  50% { background-position: 100% 50% }
-  100% { background-position: 0% 50% }
-}
-
-/* BEAUTIFUL INPUTS */
-input, select {
-  width: 100%;
-  padding: 16px 18px;
-  border-radius: 14px;
-  border: 1px solid rgba(0,0,0,0.08);
-  font-size: 15px;
-  margin-top: 6px;
-  outline: none;
-  background: rgba(255,255,255,0.85);
-  backdrop-filter: blur(8px);
-  transition: .25s;
-}
-
-input:focus, select:focus {
-  border: 1px solid #a855f7;
-  box-shadow: 0 0 0 3px rgba(168,85,247,.15);
-}
-
-/* gradient button */
-.primary-btn {
-  width: 100%;
-  padding: 16px;
-  border-radius: 16px;
-  border: none;
-  font-family: var(--font-heading);
-  font-size: 16px;
-  font-weight: 600;
+  background: #000000;
   color: white;
-  background: linear-gradient(90deg,#7b5cff,#ff6ec7);
-  cursor: pointer;
-  margin-top: 18px;
-  transition: .25s;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
-.primary-btn:hover {
-  transform: scale(1.04);
+/* Smooth fonts */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
