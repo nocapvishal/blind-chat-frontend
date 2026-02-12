@@ -6,40 +6,20 @@ import socket from "@/lib/socket";
 
 export default function MatchPage() {
   const router = useRouter();
-
   const [online, setOnline] = useState(0);
-  const [messageIndex, setMessageIndex] = useState(0);
 
-  const messages = [
-    "Scanning campus…",
-    "Finding your vibe…",
-    "Matching energies…",
-    "Almost there…"
-  ];
-
-  // ROTATING TEXT ANIMATION
   useEffect(() => {
-    const interval = setInterval(() => {
-      setMessageIndex((prev) => (prev + 1) % messages.length);
-    }, 2000);
+    socket.connect();
 
-    return () => clearInterval(interval);
-  }, []);
-
-  // SOCKET MATCHING
-  useEffect(() => {
-    const gender = localStorage.getItem("gender");
-    const preferredGender = localStorage.getItem("preferredGender");
-    const intent = localStorage.getItem("intent");
-
-    socket.emit("start-search", { gender, preferredGender, intent });
-
-    socket.on("matched", () => {
-      router.push("/chat");
-    });
+    socket.emit("start-search");
 
     socket.on("online-count", (count) => {
       setOnline(count);
+    });
+
+    socket.on("matched", () => {
+      new Audio("/match.mp3").play(); // 🔔 SOUND
+      router.push("/chat");
     });
 
     return () => {
@@ -48,42 +28,33 @@ export default function MatchPage() {
     };
   }, []);
 
-  // CANCEL SEARCH
   const cancelSearch = () => {
-    router.push("/intent");
+    socket.emit("stop-search");
+    router.push("/");
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-6">
+    <div className="h-screen flex flex-col items-center justify-center text-center px-6">
+      <p className="text-sm text-cyan-400 mb-4">
+        {online} students online
+      </p>
 
-      {/* gradient glow */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-pink-900/20" />
+      <h1 className="text-3xl font-semibold text-white mb-4">
+        Finding your vibe…
+      </h1>
 
-      <div className="relative text-center space-y-8">
-
-        <p className="text-sm text-gray-400">
-          {online} students online
-        </p>
-
-        <h1 className="text-3xl font-semibold animate-pulse">
-          {messages[messageIndex]}
-        </h1>
-
-        {/* bouncing dots */}
-        <div className="flex justify-center gap-3">
-          <span className="w-3 h-3 bg-white rounded-full animate-bounce"/>
-          <span className="w-3 h-3 bg-white rounded-full animate-bounce delay-150"/>
-          <span className="w-3 h-3 bg-white rounded-full animate-bounce delay-300"/>
-        </div>
-
-        <button
-          onClick={cancelSearch}
-          className="mt-6 px-6 py-2 rounded-full bg-white/10 hover:bg-white/20 transition text-sm"
-        >
-          Cancel search
-        </button>
-
+      <div className="flex gap-2 mb-8">
+        <span className="w-3 h-3 bg-white rounded-full animate-bounce"></span>
+        <span className="w-3 h-3 bg-white rounded-full animate-bounce delay-150"></span>
+        <span className="w-3 h-3 bg-white rounded-full animate-bounce delay-300"></span>
       </div>
+
+      <button
+        onClick={cancelSearch}
+        className="px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 transition"
+      >
+        Cancel search
+      </button>
     </div>
   );
 }
