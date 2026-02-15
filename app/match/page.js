@@ -1,105 +1,102 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import socket from "@/lib/socket";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
 export default function MatchPage() {
   const router = useRouter();
 
-  const [online, setOnline] = useState(0);
-  const [searching, setSearching] = useState(true);
-  const [dots, setDots] = useState("");
+  const [showRelaxPopup, setShowRelaxPopup] = useState(false);
+  const [showOpenPopup, setShowOpenPopup] = useState(false);
 
-  // animated dots …
   useEffect(() => {
-    const interval = setInterval(() => {
-      setDots((d) => (d.length >= 3 ? "" : d + "."));
-    }, 500);
-    return () => clearInterval(interval);
-  }, []);
+    const gender = localStorage.getItem("gender");
+    const preference = localStorage.getItem("preference");
 
-  // socket events
-  useEffect(() => {
-    // start searching when page opens
-    socket.emit("start-search");
-
-    // analytics
-    window.gtag?.("event", "search_started");
-
-    socket.on("online-count", (count) => {
-      setOnline(count);
+    // start searching with saved prefs
+    socket.emit("start-search", {
+      gender,
+      preference,
+      intent: "default" // we add intent later
     });
 
     socket.on("matched", () => {
-      setSearching(false);
+      router.push("/chat");
+    });
 
-      // play match sound
-      new Audio("/ping.mp3").play();
+    socket.on("suggest-relax-intent", () => {
+      setShowRelaxPopup(true);
+    });
 
-      // analytics
-      window.gtag?.("event", "match_found");
-
-      setTimeout(() => {
-        router.push("/chat");
-      }, 1200);
+    socket.on("suggest-open-match", () => {
+      setShowOpenPopup(true);
     });
 
     return () => {
       socket.off("matched");
-      socket.off("online-count");
+      socket.off("suggest-relax-intent");
+      socket.off("suggest-open-match");
     };
-  }, [router]);
 
-  const cancelSearch = () => {
-    socket.disconnect();
-    router.push("/");
-  };
+  }, []);
 
   return (
-    <div className="h-screen bg-black text-white flex flex-col items-center justify-center px-6 text-center">
+    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center px-6">
 
-      {/* Online counter */}
-      <p className="absolute top-6 text-sm opacity-70">
-        🟢 {online} students online
-      </p>
+      <div className="text-center space-y-6">
+        <h1 className="text-4xl font-bold">Finding someone...</h1>
+        <p className="opacity-60">Please wait while we match you</p>
 
-      {/* Big glowing circle animation */}
-      <div className="relative mb-10">
-        <div className="w-44 h-44 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 blur-3xl opacity-40 animate-pulse"></div>
-        <div className="absolute inset-0 flex items-center justify-center text-6xl">
-          🔍
-        </div>
+        {/* SKIP BUTTON */}
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={() => socket.emit("skip")}
+          className="mt-6 px-6 py-3 bg-white text-black rounded-xl font-semibold"
+        >
+          Skip 🔄
+        </motion.button>
       </div>
 
-      {/* Heading */}
-      {searching ? (
-        <>
-          <h1 className="text-3xl font-semibold mb-2">
-            Finding someone{dots}
-          </h1>
-          <p className="opacity-60 mb-10">
-            Matching you with a student right now
-          </p>
-        </>
-      ) : (
-        <>
-          <h1 className="text-3xl font-semibold text-green-400 mb-2">
-            Match Found 💬
-          </h1>
-          <p className="opacity-60">Opening chat…</p>
-        </>
+      {/* RELAX FILTER POPUP */}
+      {showRelaxPopup && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center">
+          <div className="bg-white text-black p-6 rounded-2xl space-y-4 text-center max-w-sm">
+            <h2 className="text-xl font-bold">Not many matches 😕</h2>
+            <p>Broaden your search to meet more students?</p>
+            <button
+              onClick={() => {
+                socket.emit("relax-intent");
+                setShowRelaxPopup(false);
+              }}
+              className="w-full bg-black text-white py-3 rounded-xl"
+            >
+              Broaden Search
+            </button>
+          </div>
+        </div>
       )}
 
-      {/* Cancel button */}
-      {searching && (
-        <button
-          onClick={cancelSearch}
-          className="mt-12 px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 transition"
-        >
-          Cancel
-        </button>
+      {/* OPEN MATCH POPUP */}
+      {showOpenPopup && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center">
+          <div className="bg-white text-black p-6 rounded-2xl space-y-4 text-center max-w-sm">
+            <h2 className="text-xl font-bold">Campus is quiet 😴</h2>
+            <p>Connect with anyone online?</p>
+            <button
+              onClick={() => {
+                socket.emit("open-match");
+                setShowOpenPopup(false);
+              }}
+              className="w-full bg-black text-white py-3 rounded-xl"
+            >
+              Connect Anyone
+            </button>
+          </div>
+        </div>
       )}
+
     </div>
   );
 }
