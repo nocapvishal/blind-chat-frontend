@@ -9,103 +9,70 @@ export default function MatchPage() {
   const [popup, setPopup] = useState(null);
 
   useEffect(() => {
-    socket.connect();
+    const gender = localStorage.getItem("gender");
+    const preference = localStorage.getItem("preference");
+    const intent = localStorage.getItem("intent") || "friends";
 
-    socket.emit("start-search", {
-      gender: localStorage.getItem("gender"),
-      preference: localStorage.getItem("preference"),
-      intent: localStorage.getItem("intent"),
-    });
+    socket.connect();
+    socket.emit("start-search", { gender, preference, intent });
 
     socket.on("matched", () => {
+      playMatchSound();
       router.push("/chat");
     });
 
     socket.on("requeue", () => {
-      socket.emit("start-search", {
-        gender: localStorage.getItem("gender"),
-        preference: localStorage.getItem("preference"),
-        intent: localStorage.getItem("intent"),
-      });
+      socket.emit("start-search", { gender, preference, intent });
     });
 
-    // 🔥 FALLBACK POPUPS
     socket.on("suggest-relax-intent", () => {
-      setPopup("relax");
+      setPopup("No one found with same intent. Match across intents?");
     });
 
     socket.on("suggest-open-match", () => {
-      setPopup("open");
+      setPopup("Still no matches. Open campus matching?");
     });
 
-    return () => {
-      socket.off("matched");
-      socket.off("requeue");
-      socket.off("suggest-relax-intent");
-      socket.off("suggest-open-match");
-    };
+    return () => socket.off();
   }, []);
 
-  const skip = () => socket.emit("skip");
+  function playMatchSound() {
+    const audio = new Audio("/match.mp3");
+    audio.play();
+  }
 
-  const acceptRelax = () => {
-    socket.emit("relax-intent");
-    setPopup(null);
-  };
-
-  const acceptOpen = () => {
+  function acceptSuggestion() {
     socket.emit("open-match");
     setPopup(null);
-  };
+  }
 
   return (
-    <div className="h-screen bg-black text-white flex flex-col items-center justify-center gap-6 text-center px-6">
+    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center text-center">
 
-      <h1 className="text-4xl font-bold">Finding someone…</h1>
-      <p className="opacity-60">Please wait while we match you</p>
+      <h1 className="text-3xl font-bold mb-3">Finding someone…</h1>
+      <p className="opacity-50 mb-8">Please wait while we match you</p>
 
       <button
-        onClick={skip}
-        className="bg-white text-black px-6 py-3 rounded-xl font-semibold"
+        onClick={() => socket.emit("skip")}
+        className="bg-white text-black px-6 py-3 rounded-xl"
       >
-        Skip ⏭
+        Skip ⏭️
       </button>
 
-      {/* POPUPS */}
-      {popup === "relax" && (
-        <Popup
-          text="No one found with same intent. Try relaxing filters?"
-          onAccept={acceptRelax}
-          onClose={() => setPopup(null)}
-        />
-      )}
-
-      {popup === "open" && (
-        <Popup
-          text="Still no matches 😔 Open to entire campus?"
-          onAccept={acceptOpen}
-          onClose={() => setPopup(null)}
-        />
-      )}
-    </div>
-  );
-}
-
-/* Popup component */
-function Popup({ text, onAccept, onClose }) {
-  return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center">
-      <div className="bg-zinc-900 p-6 rounded-2xl max-w-sm space-y-4">
-        <p>{text}</p>
-        <div className="flex gap-3">
-          <button onClick={onAccept} className="bg-white text-black px-4 py-2 rounded">
-            Yes
-          </button>
-          <button onClick={onClose} className="bg-zinc-700 px-4 py-2 rounded">
-            No
-          </button>
+      {popup && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center">
+          <div className="bg-zinc-900 p-8 rounded-2xl text-center space-y-5">
+            <h2 className="text-xl font-bold">No matches yet</h2>
+            <p className="opacity-70">{popup}</p>
+            <button
+              onClick={acceptSuggestion}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 rounded-xl"
+            >
+              Yes 👍
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

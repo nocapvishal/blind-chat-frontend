@@ -16,6 +16,7 @@ export default function ChatPage() {
     socket.on("receive-message", (msg) => {
       setMessages(m => [...m, { me: false, text: msg }]);
       ping.current.play();
+      
     });
 
     socket.on("partner-left", () => {
