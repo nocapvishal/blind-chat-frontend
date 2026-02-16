@@ -1,6 +1,10 @@
+"use client";
+import { useEffect } from "react";
+import mixpanel from "@/lib/mixpanel";
 import Script from "next/script";
 import "./globals.css";
 import Link from "next/link";
+
 
 export const metadata = {
   title: "Blind Chat in Campus",
@@ -8,6 +12,9 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  useEffect(() => {
+  mixpanel.track("App Opened");
+}, []);
   return (
     <html lang="en">
       <body className="bg-black text-white flex flex-col min-h-screen">
