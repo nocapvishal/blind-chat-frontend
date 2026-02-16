@@ -33,6 +33,15 @@ export default function MatchPage() {
       setPopup("Still no matches. Open campus matching?");
     });
 
+    socket.on("restart-search", () => {
+  socket.emit("start-search", {
+    gender: localStorage.getItem("gender"),
+    preference: localStorage.getItem("preference"),
+    intent: localStorage.getItem("intent"),
+  });
+});
+
+
     return () => socket.off();
   }, []);
 
