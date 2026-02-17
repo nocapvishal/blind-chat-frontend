@@ -1,9 +1,8 @@
-"use client";
-import { useEffect } from "react";
-import { initMixpanel } from "@/lib/mixpanel";
+// NO "use client" here — this is a Server Component so metadata works
 import Script from "next/script";
 import "./globals.css";
 import Link from "next/link";
+import MixpanelInit from "@/components/MixpanelInit"; // ← small client component
 
 export const metadata = {
   title: "Blind Chat in Campus",
@@ -11,20 +10,18 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  useEffect(() => {
-    initMixpanel(); // ← initializes analytics once
-  }, []);
-
   return (
     <html lang="en">
       <body className="bg-black text-white flex flex-col min-h-screen">
+
+        {/* Mixpanel initializer — runs only on client */}
+        <MixpanelInit />
 
         {/* GOOGLE ANALYTICS */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-80LJLPY7JD"
           strategy="afterInteractive"
         />
-
         <Script id="google-analytics" strategy="afterInteractive">
           {`
             window.dataLayer = window.dataLayer || [];
