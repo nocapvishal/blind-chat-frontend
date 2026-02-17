@@ -1,23 +1,20 @@
 "use client";
 
+import { trackMatchStart, trackMatched, trackSearchCancelled, trackRelaxAccepted, trackOpenAccepted } from "@/lib/mixpanel";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import socket from "@/lib/socket";
-import mixpanel from "@/lib/mixpanel";
 
 export default function MatchPage() {
   const router = useRouter();
 
-  const [status, setStatus] = useState("Finding someone...");
   const [showRelaxPopup, setShowRelaxPopup] = useState(false);
   const [showOpenPopup, setShowOpenPopup] = useState(false);
 
-  const matchSound = new Audio("/match.mp3");
+  const matchSound = typeof Audio !== "undefined" ? new Audio("/match.mp3") : null;
 
   useEffect(() => {
     socket.connect();
-
-    mixpanel.track("Started Searching");
 
     const gender = localStorage.getItem("gender");
     const preference = localStorage.getItem("preference");
@@ -25,19 +22,21 @@ export default function MatchPage() {
 
     socket.emit("start-search", { gender, preference, intent });
 
-    // matched
+    trackMatchStart();
+
+    // MATCHED
     socket.on("matched", () => {
-      matchSound.play();
-      mixpanel.track("User Matched");
+      if (matchSound) matchSound.play();
+      trackMatched();
       router.push("/chat");
     });
 
-    // relax intent suggestion
+    // Suggest relax
     socket.on("suggest-relax-intent", () => {
       setShowRelaxPopup(true);
     });
 
-    // open campus suggestion
+    // Suggest open campus
     socket.on("suggest-open-match", () => {
       setShowOpenPopup(true);
     });
@@ -49,27 +48,21 @@ export default function MatchPage() {
     };
   }, []);
 
-  // Skip search (clear meaning)
-  const skipSearch = () => {
+  const cancelSearch = () => {
     socket.emit("cancel-search");
-    mixpanel.track("Search Cancelled");
-
-    alert(
-      "Search cancelled. You can change preferences or start a fresh search."
-    );
-
+    trackSearchCancelled();
     router.push("/preferences");
   };
 
   const acceptRelax = () => {
     socket.emit("relax-intent");
-    mixpanel.track("Relax Intent Accepted");
+    trackRelaxAccepted();
     setShowRelaxPopup(false);
   };
 
   const acceptOpen = () => {
     socket.emit("open-match");
-    mixpanel.track("Open Match Accepted");
+    trackOpenAccepted();
     setShowOpenPopup(false);
   };
 
@@ -77,17 +70,12 @@ export default function MatchPage() {
     <div className="min-h-screen bg-black text-white flex items-center justify-center px-6">
 
       <div className="text-center space-y-6 max-w-md">
-
-        <h1 className="text-3xl font-bold">{status}</h1>
-        <p className="opacity-60">
-          Please wait while we find someone based on your preferences.
-        </p>
-
+        <h1 className="text-3xl font-bold">Finding someone…</h1>
+        <p className="opacity-60">Searching based on your preferences</p>
         <div className="animate-pulse text-4xl">● ● ●</div>
 
-        {/* Skip button */}
         <button
-          onClick={skipSearch}
+          onClick={cancelSearch}
           className="bg-white text-black px-6 py-3 rounded-xl mt-6"
         >
           Cancel search & change preferences
@@ -96,60 +84,48 @@ export default function MatchPage() {
 
       {/* RELAX POPUP */}
       {showRelaxPopup && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center">
-          <div className="bg-zinc-900 p-8 rounded-2xl text-center space-y-4 max-w-sm">
-            <h2 className="text-xl font-bold">Expand your search?</h2>
-            <p className="opacity-70 text-sm">
-              We couldn't find someone with the same intent yet.  
-              Want to match with more people on campus?
-            </p>
-
-            <div className="flex gap-3 justify-center">
-              <button
-                onClick={() => setShowRelaxPopup(false)}
-                className="px-4 py-2 bg-white/10 rounded-lg"
-              >
-                Wait more
-              </button>
-              <button
-                onClick={acceptRelax}
-                className="px-4 py-2 bg-white text-black rounded-lg"
-              >
-                Yes, expand
-              </button>
-            </div>
-          </div>
-        </div>
+        <Popup
+          title="Expand your search?"
+          text="We couldn't find someone with same intent. Want to match with more people?"
+          left="Wait more"
+          right="Yes, expand"
+          onLeft={() => setShowRelaxPopup(false)}
+          onRight={acceptRelax}
+        />
       )}
 
-      {/* OPEN CAMPUS POPUP */}
+      {/* OPEN MATCH POPUP */}
       {showOpenPopup && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center">
-          <div className="bg-zinc-900 p-8 rounded-2xl text-center space-y-4 max-w-sm">
-            <h2 className="text-xl font-bold">Still searching…</h2>
-            <p className="opacity-70 text-sm">
-              Not many students online right now.  
-              Allow matching with ANYONE on campus?
-            </p>
-
-            <div className="flex gap-3 justify-center">
-              <button
-                onClick={() => setShowOpenPopup(false)}
-                className="px-4 py-2 bg-white/10 rounded-lg"
-              >
-                Keep waiting
-              </button>
-              <button
-                onClick={acceptOpen}
-                className="px-4 py-2 bg-white text-black rounded-lg"
-              >
-                Match anyone
-              </button>
-            </div>
-          </div>
-        </div>
+        <Popup
+          title="Still searching…"
+          text="Not many students online. Allow matching with anyone?"
+          left="Keep waiting"
+          right="Match anyone"
+          onLeft={() => setShowOpenPopup(false)}
+          onRight={acceptOpen}
+        />
       )}
 
+    </div>
+  );
+}
+
+function Popup({ title, text, left, right, onLeft, onRight }) {
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center">
+      <div className="bg-zinc-900 p-8 rounded-2xl text-center space-y-4 max-w-sm">
+        <h2 className="text-xl font-bold">{title}</h2>
+        <p className="opacity-70 text-sm">{text}</p>
+
+        <div className="flex gap-3 justify-center">
+          <button onClick={onLeft} className="px-4 py-2 bg-white/10 rounded-lg">
+            {left}
+          </button>
+          <button onClick={onRight} className="px-4 py-2 bg-white text-black rounded-lg">
+            {right}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
