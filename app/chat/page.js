@@ -1,82 +1,96 @@
 "use client";
-
-import { useEffect, useRef, useState } from "react";
-import socket from "@/lib/socket";
+import { useEffect,useState,useRef } from "react";
 import { useRouter } from "next/navigation";
-import { trackChatStarted, trackMessageSent, trackMessageReceived, trackChatSkipped } from "@/lib/mixpanel";
+import socket from "@/lib/socket";
 
-export default function ChatPage() {
-  const router = useRouter();
-  const [messages, setMessages] = useState([]);
-  const [text, setText] = useState("");
+export default function ChatPage(){
 
-  const messageSound = typeof Audio !== "undefined" ? new Audio("/msg.mp3") : null;
-  const bottomRef = useRef();
+  const router=useRouter();
+  const inputRef=useRef(null);
+  const msgSound=useRef(null);
 
-  useEffect(() => {
-    trackChatStarted();
+  const [counts,setCounts]=useState({friendship:0,dating:0,casual:0});
+  const [messages,setMessages]=useState([]);
+  const [message,setMessage]=useState("");
 
-    socket.on("receive-message", (msg) => {
-      setMessages((prev) => [...prev, { text: msg, mine: false }]);
-      if (messageSound) messageSound.play();
-      trackMessageReceived();
+  useEffect(()=>{
+    socket.connect();
+    msgSound.current=new Audio("/msg.mp3");
+
+    socket.on("online-counts",setCounts);
+
+    socket.on("receive-message",(msg)=>{
+      setMessages(prev=>[...prev,{text:msg,self:false}]);
+      msgSound.current.play();
     });
 
-    socket.on("partner-disconnected", () => {
-      alert("Partner left the chat");
+    socket.on("partner-left",()=>{
+      alert("Stranger left 😢");
       router.push("/match");
     });
 
-    return () => {
-      socket.off("receive-message");
-      socket.off("partner-disconnected");
-    };
-  }, []);
+    return()=>socket.disconnect();
+  },[]);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  const sendMessage = () => {
-    if (!text.trim()) return;
-
-    socket.emit("send-message", text);
-    setMessages((prev) => [...prev, { text, mine: true }]);
-    trackMessageSent();
-    setText("");
+  const sendMessage=()=>{
+    if(!message.trim())return;
+    socket.emit("send-message",message);
+    setMessages(prev=>[...prev,{text:message,self:true}]);
+    setMessage("");
+    setTimeout(()=>inputRef.current?.focus(),10);
   };
 
-  const skipChat = () => {
-    socket.emit("skip");
-    trackChatSkipped();
+  const skipChat=()=>{
+    socket.emit("skip-chat");
     router.push("/match");
   };
 
-  return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+  return(
+    <div className="min-h-screen pb-20">
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {messages.map((m, i) => (
-          <div key={i} className={`max-w-xs px-4 py-2 rounded-xl ${m.mine ? "bg-white text-black ml-auto" : "bg-white/10"}`}>
-            {m.text}
-          </div>
-        ))}
-        <div ref={bottomRef} />
+      {/* HEADER COUNTERS */}
+      <div className="fixed top-0 w-full text-center p-3 border-b border-white/10">
+        🤝 {counts.friendship} | ❤️ {counts.dating} | 💬 {counts.casual}
       </div>
 
-      <div className="p-4 border-t border-white/10 flex gap-3">
-        <input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Type a message..."
-          className="flex-1 bg-white/10 px-4 py-2 rounded-xl outline-none"
-        />
-        <button onClick={sendMessage} className="bg-white text-black px-5 rounded-xl">
-          Send
-        </button>
-        <button onClick={skipChat} className="bg-red-500 px-4 rounded-xl">
-          Skip
-        </button>
+      {/* MESSAGES */}
+      <div className="pt-16 max-w-4xl mx-auto p-4 space-y-3">
+        {messages.map((msg,i)=>(
+          <div key={i}
+            className={`max-w-[75%] px-4 py-2 rounded-2xl ${
+              msg.self
+              ? "ml-auto bg-gradient-to-r from-purple-500 to-pink-500"
+              : "mr-auto bg-white/10"
+            }`}>
+            {msg.text}
+          </div>
+        ))}
+      </div>
+
+      {/* INPUT BAR */}
+      <div className="fixed bottom-0 w-full bg-black border-t border-white/10 p-3">
+        <div className="max-w-4xl mx-auto flex gap-2">
+          <input
+            ref={inputRef}
+            value={message}
+            onChange={e=>setMessage(e.target.value)}
+            onKeyDown={e=>e.key==="Enter"&&sendMessage()}
+            placeholder="Type a message..."
+            className="flex-1 bg-white/10 px-4 py-3 rounded-full outline-none"
+          />
+
+          <button
+            onClick={sendMessage}
+            className="bg-white text-black px-6 py-3 rounded-full">
+            Send
+          </button>
+
+          <button
+            onClick={skipChat}
+            className="bg-red-500 px-6 py-3 rounded-full">
+            Skip
+          </button>
+        </div>
       </div>
 
     </div>
