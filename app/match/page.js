@@ -1,18 +1,21 @@
 "use client";
-import { useEffect,useState } from "react";
+import { useEffect,useState,useRef } from "react";
 import { useRouter } from "next/navigation";
 import socket from "@/lib/socket";
 
 export default function MatchPage(){
-  const router=useRouter();
+
+  const router = useRouter();
+  const matchSound = useRef(null);
 
   const [counts,setCounts]=useState({friendship:0,dating:0,casual:0});
   const [showRelax,setShowRelax]=useState(false);
   const [showOpen,setShowOpen]=useState(false);
 
-  const matchSound=new Audio("/match.mp3");
-
   useEffect(()=>{
+    // ✅ Audio only in browser
+    matchSound.current = new Audio("/match.mp3");
+
     socket.connect();
 
     const gender=localStorage.getItem("gender");
@@ -22,7 +25,7 @@ export default function MatchPage(){
     socket.emit("start-search",{gender,preference,intent});
 
     socket.on("matched",()=>{
-      matchSound.play();
+      matchSound.current?.play();
       router.push("/chat");
     });
 
@@ -42,6 +45,7 @@ export default function MatchPage(){
     <div className="min-h-screen flex items-center justify-center text-center">
       <div>
         <h1 className="text-3xl font-bold">Finding someone...</h1>
+
         <p className="opacity-60 mt-2">
           🤝 {counts.friendship} | ❤️ {counts.dating} | 💬 {counts.casual} online
         </p>
