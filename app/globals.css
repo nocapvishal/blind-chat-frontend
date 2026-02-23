@@ -1,22 +1,147 @@
 @import "tailwindcss";
 
-/* ---- Base theme ---- */
+/* -------------------------
+   Ultra Premium Theme System
+-------------------------- */
+
 :root {
-  color-scheme: dark;
+  --bg-light: #f5f5f7;
+  --bg-dark: #0f0f11;
+
+  --text-light: #111111;
+  --text-dark: #ffffff;
+
+  --border-light: rgba(0,0,0,0.06);
+  --border-dark: rgba(255,255,255,0.08);
 }
 
-html, body {
+/* Global behavior */
+html {
   height: 100%;
+  scroll-behavior: smooth;
 }
 
 body {
-  background: #000000;
-  color: white;
-  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  min-height: 100%;
+  background: var(--bg-light);
+  color: var(--text-light);
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+  transition: background 0.35s ease, color 0.35s ease;
 }
 
-/* Smooth fonts */
+/* Dark mode auto */
+@media (prefers-color-scheme: dark) {
+  body {
+    background: var(--bg-dark);
+    color: var(--text-dark);
+  }
+}
+
+/* Font smoothing */
 * {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* -------------------------
+   Page Transitions
+-------------------------- */
+
+.animate-pageFade {
+  animation: pageFade 0.35s cubic-bezier(0.22,1,0.36,1);
+}
+
+@keyframes pageFade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* -------------------------
+   Spring Animation
+-------------------------- */
+
+.animate-spring {
+  animation: spring 0.35s cubic-bezier(0.22,1,0.36,1);
+}
+
+@keyframes spring {
+  0% { transform: translateY(10px) scale(0.98); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* -------------------------
+   Shimmer Loading
+-------------------------- */
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.05) 25%,
+    rgba(255,255,255,0.2) 50%,
+    rgba(255,255,255,0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+
+/* -------------------------
+   Scrollbars
+-------------------------- */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.15);
+  border-radius: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.15);
+  }
+}
+
+/* -------------------------
+   Safe Area for iOS
+-------------------------- */
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* -------------------------
+   Subtle Button Physics
+-------------------------- */
+
+button {
+  transition: all 0.2s ease;
+}
+
+button:active {
+  transform: scale(0.96);
+}
+
+/* -------------------------
+   Input polish
+-------------------------- */
+
+input {
+  transition: all 0.2s ease;
+}
+
+input:focus {
+  outline: none;
 }

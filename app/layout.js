@@ -1,8 +1,14 @@
-// NO "use client" here — this is a Server Component so metadata works
 import Script from "next/script";
 import "./globals.css";
 import Link from "next/link";
-import MixpanelInit from "@/components/MixpanelInit"; // ← small client component
+import { Inter } from "next/font/google";
+import MixpanelInit from "@/components/MixpanelInit";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 export const metadata = {
   title: "Blind Chat in Campus",
@@ -11,13 +17,17 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className="bg-black text-white flex flex-col min-h-screen">
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${inter.className} flex flex-col min-h-screen antialiased`}
+      >
+        {/* Global Depth Background */}
+        <div className="fixed inset-0 -z-10 bg-gradient-to-br from-white/40 to-transparent dark:from-black/40 blur-3xl opacity-40 pointer-events-none" />
 
-        {/* Mixpanel initializer — runs only on client */}
+        {/* Mixpanel */}
         <MixpanelInit />
 
-        {/* GOOGLE ANALYTICS */}
+        {/* Google Analytics */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-80LJLPY7JD"
           strategy="afterInteractive"
@@ -31,17 +41,24 @@ export default function RootLayout({ children }) {
           `}
         </Script>
 
-        {/* PAGE CONTENT */}
-        <div className="flex-1">{children}</div>
+        {/* Page Transition Wrapper */}
+        <div className="flex-1 animate-pageFade transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]">
+          {children}
+        </div>
 
-        {/* LEGAL FOOTER */}
-        <footer className="text-xs text-gray-500 border-t border-white/10 p-4 flex flex-wrap justify-center gap-4">
-          <Link href="/legal/terms">Terms</Link>
-          <Link href="/legal/privacy">Privacy</Link>
-          <Link href="/legal/guidelines">Guidelines</Link>
+        {/* Premium Footer */}
+        <footer className="text-xs border-t border-black/5 dark:border-white/10 py-6 flex flex-wrap justify-center gap-6 opacity-50 backdrop-blur-xl bg-white/40 dark:bg-black/40">
+          <Link href="/legal/terms" className="hover:opacity-80 transition">
+            Terms
+          </Link>
+          <Link href="/legal/privacy" className="hover:opacity-80 transition">
+            Privacy
+          </Link>
+          <Link href="/legal/guidelines" className="hover:opacity-80 transition">
+            Guidelines
+          </Link>
           <span>© Blind Chat</span>
         </footer>
-
       </body>
     </html>
   );
