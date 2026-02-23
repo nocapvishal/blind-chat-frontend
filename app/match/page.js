@@ -1,61 +1,64 @@
 "use client";
-import { useEffect,useState,useRef } from "react";
+
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import socket from "@/lib/socket";
 
-export default function MatchPage(){
-
+export default function MatchPage() {
   const router = useRouter();
-  const matchSound = useRef(null);
+  const [counts, setCounts] = useState({ friendship: 0, dating: 0, casual: 0 });
 
-  const [counts,setCounts]=useState({friendship:0,dating:0,casual:0});
-  const [showRelax,setShowRelax]=useState(false);
-  const [showOpen,setShowOpen]=useState(false);
+  useEffect(() => {
+    const preferences = JSON.parse(localStorage.getItem("preferences"));
 
-  useEffect(()=>{
-    // ✅ Audio only in browser
-    matchSound.current = new Audio("/match.mp3");
+    if (!preferences) {
+      router.push("/intent");
+      return;
+    }
 
-    socket.connect();
+    if (!socket.connected) {
+      socket.connect();
+    }
 
-    const gender=localStorage.getItem("gender");
-    const preference=localStorage.getItem("preference");
-    const intent=localStorage.getItem("intent")||"casual";
+    const handleCounts = (data) => {
+      setCounts(data);
+    };
 
-    socket.emit("start-search",{gender,preference,intent});
-
-    socket.on("matched",()=>{
-      matchSound.current?.play();
+    const handleMatch = () => {
       router.push("/chat");
-    });
+    };
 
-    socket.on("online-counts",setCounts);
-    socket.on("suggest-relax-intent",()=>setShowRelax(true));
-    socket.on("suggest-open-match",()=>setShowOpen(true));
+    socket.on("online-counts", handleCounts);
+    socket.on("match-found", handleMatch);
 
-    return()=>socket.disconnect();
-  },[]);
+    socket.emit("start-search", preferences);
 
-  const cancelSearch=()=>{
-    socket.emit("cancel-search");
-    router.push("/preferences");
-  };
+    return () => {
+      socket.off("online-counts", handleCounts);
+      socket.off("match-found", handleMatch);
+      socket.emit("cancel-search");
+    };
+  }, [router]);
 
-  return(
-    <div className="min-h-screen flex items-center justify-center text-center">
-      <div>
-        <h1 className="text-3xl font-bold">Finding someone...</h1>
+  return (
+    <div className="flex items-center justify-center h-screen bg-black text-white flex-col gap-6">
+      <h1 className="text-3xl font-bold">Finding someone...</h1>
 
-        <p className="opacity-60 mt-2">
-          🤝 {counts.friendship} | ❤️ {counts.dating} | 💬 {counts.casual} online
-        </p>
-
-        <button
-          onClick={cancelSearch}
-          className="bg-white text-black px-6 py-3 rounded-xl mt-6">
-          Cancel search & change preferences
-        </button>
+      <div className="flex gap-4 text-lg">
+        <span>🤝 {counts.friendship}</span>
+        <span>❤️ {counts.dating}</span>
+        <span>💬 {counts.casual}</span>
       </div>
+
+      <button
+        onClick={() => {
+          socket.emit("cancel-search");
+          router.push("/intent");
+        }}
+        className="bg-white text-black px-6 py-2 rounded-lg"
+      >
+        Cancel search & change preferences
+      </button>
     </div>
   );
 }
