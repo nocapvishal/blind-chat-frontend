@@ -82,7 +82,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] dark:bg-[#0f0f11] pb-32">
+    <div className="min-h-screen bg-[#f5f5f7] dark:bg-[#0f0f11] pb-40">
       {/* Dynamic Island */}
       {showIsland && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-black text-white px-6 py-2 rounded-full shadow-2xl backdrop-blur-xl z-50">
