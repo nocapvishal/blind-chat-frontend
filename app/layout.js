@@ -1,7 +1,10 @@
+"use client";
+
 import Script from "next/script";
 import "./globals.css";
 import Link from "next/link";
 import { Inter } from "next/font/google";
+import { usePathname } from "next/navigation";
 import MixpanelInit from "@/components/MixpanelInit";
 
 const inter = Inter({
@@ -16,6 +19,9 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  const pathname = usePathname();
+  const isChatPage = pathname === "/chat";
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -46,19 +52,21 @@ export default function RootLayout({ children }) {
           {children}
         </div>
 
-        {/* Premium Footer */}
-        <footer className="text-xs border-t border-black/5 dark:border-white/10 py-6 flex flex-wrap justify-center gap-6 opacity-50 backdrop-blur-xl bg-white/40 dark:bg-black/40">
-          <Link href="/legal/terms" className="hover:opacity-80 transition">
-            Terms
-          </Link>
-          <Link href="/legal/privacy" className="hover:opacity-80 transition">
-            Privacy
-          </Link>
-          <Link href="/legal/guidelines" className="hover:opacity-80 transition">
-            Guidelines
-          </Link>
-          <span>© Blind Chat</span>
-        </footer>
+        {/* Premium Footer (HIDDEN ON CHAT PAGE) */}
+        {!isChatPage && (
+          <footer className="text-xs border-t border-black/5 dark:border-white/10 py-6 flex flex-wrap justify-center gap-6 opacity-50 backdrop-blur-xl bg-white/40 dark:bg-black/40">
+            <Link href="/legal/terms" className="hover:opacity-80 transition">
+              Terms
+            </Link>
+            <Link href="/legal/privacy" className="hover:opacity-80 transition">
+              Privacy
+            </Link>
+            <Link href="/legal/guidelines" className="hover:opacity-80 transition">
+              Guidelines
+            </Link>
+            <span>© Blind Chat</span>
+          </footer>
+        )}
       </body>
     </html>
   );
