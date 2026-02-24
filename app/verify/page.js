@@ -1,4 +1,5 @@
 "use client";
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -18,89 +19,61 @@ export default function VerifyPage() {
     router.push("/intent");
   }
 
-  function handleChange(e) {
-    setEmail(e.target.value);
-  }
-
-  const showGhost =
-    email.includes("@") &&
-    !email.endsWith(domain) &&
-    email.split("@")[1] !== "pondiuni.ac.in";
-
-  const usernamePart = email.split("@")[0];
-
-  function applySuggestion() {
-    setEmail(usernamePart + domain);
-  }
+  const usernamePart = email.split("@")[0] || "";
+  const showSuggestion =
+    email.includes("@") && !email.endsWith(domain);
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-6">
-      <div className="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 space-y-6 text-center">
+    <main className="relative min-h-screen flex items-center justify-center overflow-hidden">
 
-        <h1 className="text-3xl font-semibold">
-          Verify student status
-        </h1>
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0f0f11] via-black to-[#141417]" />
 
-        <p className="text-gray-400 text-sm">
-          Use your Pondicherry University email
-        </p>
+      <div className="relative w-full max-w-md px-10 py-12 rounded-[28px] bg-white/5 backdrop-blur-2xl border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.4)] text-center space-y-8">
 
-        <div className="relative text-left">
+        <div>
+          <h1 className="text-3xl font-semibold mb-2">
+            Verify student status
+          </h1>
+          <p className="text-white/50 text-sm">
+            Use your Pondicherry University email
+          </p>
+        </div>
 
-          {/* INPUT */}
+        <div className="space-y-3">
+
           <input
             type="email"
-            placeholder="email@pondiuni.ac.in"
-            className="w-full px-4 py-3 rounded-xl bg-black border border-white/20 outline-none relative z-10"
+            placeholder="name@pondiuni.ac.in"
             value={email}
-            onChange={handleChange}
+            onChange={(e) => setEmail(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Tab" && showGhost) {
-                e.preventDefault();
-                applySuggestion();
-              }
-              if (e.key === "Enter") {
-                handleContinue();
-              }
+              if (e.key === "Enter") handleContinue();
             }}
+            className="w-full px-5 py-4 rounded-2xl bg-black/40 border border-white/10 outline-none focus:border-purple-500 transition"
           />
 
-          {/* INLINE GHOST SUGGESTION */}
-          {showGhost && (
-            <div className="absolute inset-0 flex items-center px-4 pointer-events-none">
-              <span className="text-white/40 truncate">
-                {usernamePart}
-                <span className="text-white/20">
-                  {domain}
-                </span>
-              </span>
-            </div>
-          )}
-
-          {/* PREMIUM CLICKABLE CHIP */}
-          {showGhost && (
-            <div
-              onClick={applySuggestion}
-              className="mt-3 inline-block px-4 py-1 rounded-full bg-white/10 border border-white/20 text-sm text-white/80 hover:bg-white/20 transition-all cursor-pointer"
+          {showSuggestion && (
+            <button
+              onClick={() => setEmail(usernamePart + domain)}
+              className="text-xs text-purple-400 hover:underline"
             >
-              {domain}
-            </div>
+              Use {usernamePart + domain}
+            </button>
           )}
-
         </div>
 
         <button
           onClick={handleContinue}
-          className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 font-semibold hover:opacity-90 transition"
+          className="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-500 via-indigo-500 to-pink-500 font-semibold hover:scale-[1.02] transition-all duration-300"
         >
           Continue →
         </button>
 
-        <p className="text-xs text-gray-500">
-          Your email is never shared with other users.
+        <p className="text-xs text-white/30">
+          Your email is never shared publicly.
         </p>
 
       </div>
-    </div>
+    </main>
   );
 }

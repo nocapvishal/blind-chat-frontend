@@ -2,7 +2,8 @@ import Script from "next/script";
 import "./globals.css";
 import Link from "next/link";
 import { Inter } from "next/font/google";
-import MixpanelInit from "@/components/MixpanelInit";
+import MixpanelInit from "./components/MixpanelInit";
+import Footer from "./components/Footer";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -41,24 +42,13 @@ export default function RootLayout({ children }) {
           `}
         </Script>
 
-        {/* Page Transition Wrapper */}
+        {/* Page Transition */}
         <div className="flex-1 animate-pageFade transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]">
           {children}
         </div>
 
-        {/* Premium Footer */}
-        <footer className="text-xs border-t border-black/5 dark:border-white/10 py-6 flex flex-wrap justify-center gap-6 opacity-50 backdrop-blur-xl bg-white/40 dark:bg-black/40">
-          <Link href="/legal/terms" className="hover:opacity-80 transition">
-            Terms
-          </Link>
-          <Link href="/legal/privacy" className="hover:opacity-80 transition">
-            Privacy
-          </Link>
-          <Link href="/legal/guidelines" className="hover:opacity-80 transition">
-            Guidelines
-          </Link>
-          <span>© Blind Chat</span>
-        </footer>
+        {/* Footer */}
+        <Footer />
       </body>
     </html>
   );
